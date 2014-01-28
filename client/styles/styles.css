@@ -1,0 +1,39 @@
+body {
+    background: #eee;
+    text-align: center;
+    padding: 0 25px;
+}
+
+#main {
+    width: 500px;
+    margin: auto;
+    text-align: left;
+    background: white;
+    padding: 20px 60px;
+    border: solid #ddd;
+    border-width: 0 1px 1px 1px;
+}
+
+#main h1 {
+    text-align: center;
+    margin-top: 0;
+    font-size: 35px;
+}
+
+li {
+  list-style-type:none;
+  padding:2px;
+  border:solid #ddd;
+}
+
+button.submit {
+  display: inline;
+}
+
+form {
+  display: block;
+}
+
+.friend {
+  background-color:lightgreen;
+}

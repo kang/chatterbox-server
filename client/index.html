@@ -1,0 +1,134 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>chatterbox</title>
+    <link rel="stylesheet" href="styles/styles.css">
+    <script src="scripts/jquery.js"></script>
+    <script src="scripts/config.js"></script>
+    <script src="scripts/app.js"></script>
+  </head>
+  <body>
+
+    <div id="main">
+      <h1>Chat-Client</h1>
+      <form onsubmit="sendMessage($('input.sendmsg').val());$('input.sendmsg').val('');return false;">
+        Message: <input class="sendmsg" style="width:321px; margin-left: 24px" type='text' name='msg'>
+
+          <button class='submit' style="position:relative">Submit!</button>
+      </form>
+      <form onsubmit="changeRoom($('input.roomname').val());return false;">
+        Room: <input class="roomname" style="margin-left:42px;margin-bottom:15px;width:320px" type='text'>
+
+      <button class='submit'>Submit!</button>
+      </form>
+      <ul id='incoming'></ul>
+    </div>
+
+    <script>
+
+    var changeRoom = function (newRoom){
+      var newLocation = '?username=' + clientVariables['username'].toString()+'&roomname='+newRoom.toString();
+      window.location.search = newLocation;
+      return false;
+    };
+
+    var toggleFriend = function(that){
+      if (!clientVariables['friends'][that.text]){
+        clientVariables['friends'][that.text] = that.text;
+      }
+      else{
+        delete clientVariables.friends[that.text];
+      }
+      updateMessages();
+    };
+
+    var displayList = function(data){
+      var allMsgs = [];
+      var singlePost;
+
+      $('ul').html('');
+
+      $.each(data.results, function(){
+        if (this && this.text && this.text.length < 200){
+          if ( !clientVariables['roomname'] || this['roomname'] === clientVariables['roomname'] ){
+            singlePost = $("<li>");
+            singlePost.append($('<a>',{class:'addFriend',text:this.username,href:''}));
+            singlePost.append($('<span>',{text:": " + this.text}));
+            if (clientVariables['friends'][this.username]){
+              singlePost.attr('class','friend');
+            }
+            allMsgs.push(singlePost);
+          }
+        }
+      });
+
+      $('#incoming').append(allMsgs);
+
+      $('a.addFriend').on('click', function(e){e.preventDefault(); toggleFriend(this)});
+    };
+
+    var updateMessages = function(){
+      gatherInformation();
+      $.ajax({
+        url: 'http://127.0.0.1:8080',
+        type: 'GET',
+        dataType : "json",
+        success: function(data) {
+          displayList(data);
+        },
+        error: function(data){
+          console.log(data, "was NOT retreived!");
+        }
+      });
+    };
+
+    var sendMessage = function(input){
+      gatherInformation();
+      var message = {
+        'username': clientVariables['username'],
+        'text': input,
+        'roomname': clientVariables['roomname']
+      };
+
+      $.ajax({
+        url: 'http://127.0.0.1:8080',
+        type: 'POST',
+        data: JSON.stringify(message),
+        contentType: 'application/json',
+        success: function(data){
+          updateMessages();
+          console.log('message sent!');
+        },
+        error: function(data){
+          updateMessages();
+          console.log(data);
+          console.log('message was NOT sent!');
+        }
+      });
+    };
+
+    var gatherInformation = function(){
+      var params = window.location.search.substr(1).split('&');
+        for (var i = 0; i < params.length; i++){
+          var splitArray = params[i].split('=');
+          clientVariables[splitArray[0]] = splitArray[1];
+        }
+    };
+
+    var clientVariables = {'friends':{}};
+
+    $(document).ready(function(){
+
+      //invoking functions
+      updateMessages();
+      // var keepUpdating = setInterval(function(){
+      //   updateMessages();
+      // },1000);
+
+
+    });
+    </script>
+
+  </body>
+</html>
